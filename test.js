@@ -47,6 +47,14 @@ async function queryHttp(api, args, retry=0) {
   }
 }
 
+function schemasToTools(schemas) {
+  return schemas.map((schema) => {
+    const tool = { type: 'function' }
+    tool.function = schema
+    return tool
+  })
+}
+
 async function queryModel(api, model, message, thread, depth=1) {
   let messages = []
   if (thread) { messages = [...thread] }
@@ -54,25 +62,25 @@ async function queryModel(api, model, message, thread, depth=1) {
   else if (!thread) { messages.push({role: 'system', content: math.getPrompt1()}) }
   if (message) { messages.push({role: 'user', content: message}) }
 
-  let schemas = fnCall = undefined
+  let tools = toolChoice = undefined
   if (depth === 1) {
-    schemas = [math.solveMathExpressionSchema()]
-    fnCall = {name: 'solve_math_expression'}
+    tools = schemasToTools([math.solveMathExpressionSchema()])
+    toolChoice = {type: 'function', function: {name: 'solve_math_expression'} }
   }
 
-  console.log(depth, 'function_call', fnCall)
-  console.log(depth, 'schemas', schemas)
+  console.log(depth, 'function_call', toolChoice?.function?.name)
+  console.log(depth, 'tools', tools)
   console.log(depth, 'messages', messages)
   const chatCompletion = await queryHttp(api, {
     model: model,
     temperature: llmTemp,
     max_tokens: llmMax,
-    functions: schemas,
-    function_call: fnCall,
+    tools: tools,
+    tool_choice: toolChoice,
     messages
   })
 
-  const reply = chatCompletion.choices[0].message
+  let reply = chatCompletion.choices[0].message
   console.log(depth, 'reply', reply)
   messages.push(reply)
 
@@ -81,7 +89,8 @@ async function queryModel(api, model, message, thread, depth=1) {
 
   // fn call
   let result = null
-  const args = JSON.parse(reply.function_call.arguments)
+  reply = reply.tool_calls[0]
+  const args = JSON.parse(reply.function.arguments)
 
   try {
     result = await math.solveMathExpression(args)
@@ -92,7 +101,7 @@ async function queryModel(api, model, message, thread, depth=1) {
     return messages
   }
 
-  messages.push({role: 'function', name: reply.function_call.name, content: JSON.stringify(result)})
+  messages.push({role: 'tool', tool_call_id: reply.id, name: reply.function.name, content: JSON.stringify(result)})
   return queryModel(api, model, null, messages, depth+1)
 }
 
