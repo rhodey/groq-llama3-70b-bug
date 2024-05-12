@@ -57,7 +57,8 @@ async function queryModel(api, model, message, thread, depth=1) {
   let schemas = fnCall = undefined
   if (depth === 1) {
     schemas = [math.solveMathExpressionSchema()]
-    fnCall = {name: 'solve_math_expression'}
+    // fnCall = {name: 'solve_math_expression'}
+    fnCall = 'auto'
   }
 
   console.log(depth, 'function_call', fnCall)
