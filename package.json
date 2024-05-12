@@ -1,0 +1,14 @@
+{
+  "name": "groq-llama3-70b-bug",
+  "version": "0.0.1",
+  "description": "Groq Llama3 70B bug",
+  "scripts": { },
+  "dependencies": {
+    "minimist": "^1.2.0",
+    "split": "^1.0.1",
+    "luxon": "^3.2.1",
+    "math-expression-evaluator": "^2.0.3",
+    "groq-sdk": "^0.3.3"
+  },
+  "keywords": []
+}
