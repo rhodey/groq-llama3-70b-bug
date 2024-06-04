@@ -1,5 +1,5 @@
 # groq-llama3-70b-bug
-Groq Llama3 70B bug
+Groq has made improvements to function calling and this specific prompting no longer reproduces the bug.
 
 ## Setup
 ```
